@@ -18,6 +18,7 @@ const string APlaceDescriptionService::ValidLongitude("-104.44");
 class HttpStub : public Http {
 public:
 	string returnResponse;
+	string expectedURL;
 	void initialize() override {}
 	string get(const string& url) const override {
 		verify(url);
@@ -25,11 +26,7 @@ public:
 	};
 
 	void verify(const string& url) const {
-		string urlStart("http://open.mapquestapi.com/nominatim/v1/reverse?format=json&");
-		string expectedArgs(urlStart +
-				"lat=" + APlaceDescriptionService::ValidLatitude + "&" +
-				"lon=" + APlaceDescriptionService::ValidLongitude);
-		ASSERT_THAT(url, EndsWith(expectedArgs));
+		ASSERT_THAT(url, EndsWith(expectedURL));
 	}
 };
 
@@ -40,6 +37,10 @@ TEST_F(APlaceDescriptionService, ReturnsDescriptionForValidLocation) {
 					"city" : "Fountain",
 					"state" : "CO",
 					"country" : "US" }})";
+	string urlStart{"http://open.mapquestapi.com/nominatim/v1/reverse?format=json&"};
+	httpStub.expectedURL = urlStart +
+				"lat=" + APlaceDescriptionService::ValidLatitude + "&" +
+				"lon=" + APlaceDescriptionService::ValidLongitude;
 	PlaceDescriptionService service{&httpStub};
 
 	auto description = service.summaryDescription(ValidLatitude, ValidLongitude);
