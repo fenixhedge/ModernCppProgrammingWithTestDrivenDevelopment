@@ -9,24 +9,22 @@ PlaceDescriptionService::PlaceDescriptionService(Http* http) : http_(http) {}
 
 string PlaceDescriptionService::summaryDescription(
 		const string& latitude, const string& longitude) {
-	auto request = createGetRequestUrl(latitude, longitude);
+	auto request = createGetUrlRequest(latitude, longitude);
 	auto response = get(request);
-
 	return summaryDescription(response);
 }
 
 string PlaceDescriptionService::summaryDescription(const string& response) const {
 	AddressExtractor extractor;
 	auto address = extractor.addressFrom(response);
-
 	return address.summaryDescription();
 }
 
-string PlaceDescriptionService::get(const string& requestUrl) const {
-	return http_->get(requestUrl);
+string PlaceDescriptionService::get(const std::string& request) const {
+	return http_->get(request);
 }
 
-string PlaceDescriptionService::createGetRequestUrl(
+string PlaceDescriptionService::createGetUrlRequest(
 		const string& latitude, const string& longitude) const {
 	string server{"http://open.mapquestapi.com/"};
 	string document{"nominatim/v1/reverse"};

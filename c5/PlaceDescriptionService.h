@@ -13,10 +13,10 @@ public:
 	std::string summaryDescription(const std::string& latitude, const std::string& longitude);
 
 private:
+	std::string createGetUrlRequest(const std::string& latitude, const std::string& longitude) const;
 	std::string summaryDescription(const std::string& response) const;
-	std::string get(const std::string& url) const;
-	std::string createGetRequestUrl(const std::string& latitude, const std::string& longitude) const;
 	std::string keyValue(const std::string& key, const std::string& value) const;
+	std::string get(const std::string& request) const;
 
 	Http* http_;
 };
