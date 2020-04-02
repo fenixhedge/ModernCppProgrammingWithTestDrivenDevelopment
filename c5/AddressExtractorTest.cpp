@@ -51,3 +51,17 @@ TEST_F(AnAddressExtractor, ReturnsPopulatedAddressForValidJsonResult) {
 	ASSERT_THAT(address.state, Eq("Colorado"));
 	ASSERT_THAT(address.country, Eq("United States of America"));
 }
+
+TEST_F(AnAddressExtractor, DefaultsNonexistentFieldToEmpty) {
+	auto json = R"({
+		"address" : {
+			"road" : "War Eagle Court",
+			"city" : "Colorado Springs",
+			"country" : "United States of America",
+		}
+	})";
+
+	auto address = extractor.addressFrom(json);
+
+	ASSERT_THAT(address.state, Eq(""));
+}
