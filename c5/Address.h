@@ -8,6 +8,11 @@ struct Address {
 	std::string city;
 	std::string state;
 	std::string country;
+
+	std::string summaryDescription() const {
+		return road + ", " + city + ", " + state + ", " + country;
+	}
+
 };
 
 #endif
