@@ -10,7 +10,7 @@ set(sources
 	main.cpp
 	CurlHttp.cpp CurlHttpTest.cpp
 	AddressExtractorTest.cpp AddressExtractor.cpp
-	PlaceDescriptionServiceTest.cpp PlaceDescriptionService.cpp
+	PlaceDescriptionServiceTest.cpp
 	HttpFactory.cpp
 	OutParameterTest.cpp)
 add_executable(test ${sources})

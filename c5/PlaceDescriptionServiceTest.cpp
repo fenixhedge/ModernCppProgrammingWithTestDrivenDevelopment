@@ -17,20 +17,6 @@ class APlaceDescriptionService : public Test {
 public:
 	static const string ValidLatitude;
 	static const string ValidLongitude;
-
-	shared_ptr<HttpStub> httpStub;
-	shared_ptr<HttpFactory> factory;
-	shared_ptr<PlaceDescriptionService> service;
-
-	virtual void SetUp() override {
-		factory = make_shared<HttpFactory>();
-		service = make_shared<PlaceDescriptionService>(factory);
-	}
-
-	void TearDown() override {
-		factory.reset();
-		httpStub.reset();
-	}
 };
 
 const string APlaceDescriptionService::ValidLatitude("38.005");
@@ -38,11 +24,7 @@ const string APlaceDescriptionService::ValidLongitude("-104.44");
 
 class APlaceDescriptionService_WithHttpMock : public APlaceDescriptionService {
 public:
-	void SetUp() override {
-		APlaceDescriptionService::SetUp();
-		httpStub = make_shared<HttpStub>();
-		factory->setInstance(httpStub);
-	}
+	PlaceDescriptionServiceTemplate<HttpStub> service;
 };
 
 TEST_F(APlaceDescriptionService_WithHttpMock, MakesHttpRequestToObtainAddress) {
@@ -50,7 +32,26 @@ TEST_F(APlaceDescriptionService_WithHttpMock, MakesHttpRequestToObtainAddress) {
 	auto expectedURL = urlStart +
 			"lat=" + APlaceDescriptionService::ValidLatitude + "&" +
 			"lon=" + APlaceDescriptionService::ValidLongitude;
-	EXPECT_CALL(*httpStub, initialize());
-	EXPECT_CALL(*httpStub, get(expectedURL));
-	service->summaryDescription(ValidLatitude, ValidLongitude);
+	EXPECT_CALL(service.http(), initialize());
+	EXPECT_CALL(service.http(), get(expectedURL));
+	service.summaryDescription(ValidLatitude, ValidLongitude);
+}
+
+class APlaceDescriptionService_WithNiceHttpMock : public APlaceDescriptionService {
+public:
+	PlaceDescriptionServiceTemplate<NiceMock<HttpStub>> service;
+};
+
+TEST_F(APlaceDescriptionService_WithNiceHttpMock,
+		FormatsRetrievedAddressIntoSummaryDescription) {
+	EXPECT_CALL(service.http(), get(_))
+		.WillOnce(Return(
+			R"({ "address" : {
+				"road" : "Drury Ln",
+				"city" : "Fountain",
+				"state" : "CO",
+				"country" : "US" }})"));
+	auto description = service.summaryDescription(ValidLatitude, ValidLongitude);
+
+	ASSERT_THAT(description, Eq("Drury Ln, Fountain, CO, US"));
 }

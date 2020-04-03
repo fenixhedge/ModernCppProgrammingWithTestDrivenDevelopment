@@ -3,24 +3,52 @@
 
 #include <string>
 #include <memory>
-
 #include "Address.h"
+#include "AddressExtractor.h"
 
-class HttpFactory;
-
-class PlaceDescriptionService {
+template<typename HTTP>
+class PlaceDescriptionServiceTemplate {
 public:
-	PlaceDescriptionService(std::shared_ptr<HttpFactory> httpFactory);
-	std::string summaryDescription(const std::string& latitude, const std::string& longitude);
+	std::string summaryDescription(const std::string& latitude, const std::string& longitude) {
+		auto request = createGetUrlRequest(latitude, longitude);
+		auto response = get(request);
+		return summaryDescription(response);
+	}
+
+	//mocks in tests needs this reference
+	HTTP& http() {
+		return http_;
+	}
 
 private:
-	std::string createGetUrlRequest(const std::string& latitude, const std::string& longitude) const;
-	std::string summaryDescription(const std::string& response) const;
-	std::string keyValue(const std::string& key, const std::string& value) const;
-	std::string get(const std::string& request) const;
+	std::string summaryDescription(const std::string& response) const {
+		AddressExtractor extractor;
+		auto address = extractor.addressFrom(response);
+		return address.summaryDescription();
+	}
 
-	std::shared_ptr<HttpFactory> httpFactory_;
+	std::string createGetUrlRequest(const std::string& latitude, const std::string& longitude) const {
+		std::string server{"http://open.mapquestapi.com/"};
+		std::string document{"nominatim/v1/reverse"};
+		return server + document + "?" +
+			keyValue("format", "json") + "&" +
+			keyValue("lat", latitude) + "&" +
+			keyValue("lon", longitude);
+	}
+
+	std::string get(const std::string& request) {
+		http_.initialize();
+		return http_.get(request);
+	}
+
+	std::string keyValue(const std::string& key, const std::string& value) const {
+		return key + "=" + value;
+	}
+
+	HTTP http_;
 };
 
+class Http;
+typedef PlaceDescriptionServiceTemplate<Http> PlaceDescriptionService;
 
 #endif
