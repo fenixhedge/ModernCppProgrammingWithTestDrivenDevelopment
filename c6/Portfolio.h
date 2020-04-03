@@ -2,6 +2,10 @@
 #define Portfolio_h
 
 #include <string>
+#include <exception>
+
+class InvalidPurchaseException : public std::exception {
+};
 
 class Portfolio {
 public:
@@ -11,7 +15,6 @@ public:
 	unsigned int ShareCount(const std::string& symbol) const;
 
 private:
-	bool isEmpty_;
 	unsigned int shareCount_;
 };
 
