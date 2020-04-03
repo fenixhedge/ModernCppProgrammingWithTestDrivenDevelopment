@@ -11,6 +11,7 @@ set(sources
 	CurlHttp.cpp CurlHttpTest.cpp
 	AddressExtractorTest.cpp AddressExtractor.cpp
 	PlaceDescriptionServiceTest.cpp PlaceDescriptionService.cpp
+	HttpFactory.cpp
 	OutParameterTest.cpp)
 add_executable(test ${sources})
 target_link_libraries(test gmock)

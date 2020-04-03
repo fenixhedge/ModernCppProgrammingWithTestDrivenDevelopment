@@ -1,13 +1,14 @@
 #include "PlaceDescriptionService.h"
 #include "Http.h"
 #include "CurlHttp.h"
+#include "HttpFactory.h"
 #include "AddressExtractor.h"
 #include <string>
 
 using namespace std;
 
-PlaceDescriptionService::PlaceDescriptionService()
-	: http_(make_shared<CurlHttp>()) {}
+PlaceDescriptionService::PlaceDescriptionService(std::shared_ptr<HttpFactory> httpFactory)
+	: httpFactory_(httpFactory) {}
 
 string PlaceDescriptionService::summaryDescription(
 		const string& latitude, const string& longitude) {
@@ -23,13 +24,9 @@ string PlaceDescriptionService::summaryDescription(const string& response) const
 }
 
 string PlaceDescriptionService::get(const std::string& request) const {
-	auto http = httpService();
+	auto http = httpFactory_->get();
 	http->initialize();
 	return http->get(request);
-}
-
-shared_ptr<Http> PlaceDescriptionService::httpService() const {
-	return http_;
 }
 
 string PlaceDescriptionService::createGetUrlRequest(

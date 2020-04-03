@@ -6,16 +6,12 @@
 
 #include "Address.h"
 
-class Http;
+class HttpFactory;
 
 class PlaceDescriptionService {
 public:
-	PlaceDescriptionService();
-	virtual ~PlaceDescriptionService() {}
+	PlaceDescriptionService(std::shared_ptr<HttpFactory> httpFactory);
 	std::string summaryDescription(const std::string& latitude, const std::string& longitude);
-
-protected:
-	virtual std::shared_ptr<Http> httpService() const;
 
 private:
 	std::string createGetUrlRequest(const std::string& latitude, const std::string& longitude) const;
@@ -23,7 +19,7 @@ private:
 	std::string keyValue(const std::string& key, const std::string& value) const;
 	std::string get(const std::string& request) const;
 
-	std::shared_ptr<Http> http_;
+	std::shared_ptr<HttpFactory> httpFactory_;
 };
 
 
