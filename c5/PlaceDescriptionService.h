@@ -2,6 +2,7 @@
 #define PlaceDescriptionService_h
 
 #include <string>
+#include <memory>
 
 #include "Address.h"
 
@@ -9,8 +10,12 @@ class Http;
 
 class PlaceDescriptionService {
 public:
-	PlaceDescriptionService(Http* http);
+	PlaceDescriptionService();
+	virtual ~PlaceDescriptionService() {}
 	std::string summaryDescription(const std::string& latitude, const std::string& longitude);
+
+protected:
+	virtual std::shared_ptr<Http> httpService() const;
 
 private:
 	std::string createGetUrlRequest(const std::string& latitude, const std::string& longitude) const;
@@ -18,7 +23,7 @@ private:
 	std::string keyValue(const std::string& key, const std::string& value) const;
 	std::string get(const std::string& request) const;
 
-	Http* http_;
+	std::shared_ptr<Http> http_;
 };
 
 

@@ -10,7 +10,8 @@ set(sources
 	main.cpp
 	CurlHttp.cpp CurlHttpTest.cpp
 	AddressExtractorTest.cpp AddressExtractor.cpp
-	PlaceDescriptionServiceTest.cpp PlaceDescriptionService.cpp)
+	PlaceDescriptionServiceTest.cpp PlaceDescriptionService.cpp
+	OutParameterTest.cpp)
 add_executable(test ${sources})
 target_link_libraries(test gmock)
 target_link_libraries(test gtest)
