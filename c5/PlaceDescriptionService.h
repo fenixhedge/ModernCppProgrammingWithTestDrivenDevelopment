@@ -2,7 +2,6 @@
 #define PlaceDescriptionService_h
 
 #include <string>
-#include <memory>
 #include "Address.h"
 #include "AddressExtractor.h"
 
