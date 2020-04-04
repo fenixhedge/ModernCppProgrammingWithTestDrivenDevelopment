@@ -2,20 +2,19 @@
 
 using namespace std;
 
-Portfolio::Portfolio() : shareCount_{0u} {
-}
-
 bool Portfolio::IsEmpty() const {
-	return 0 == shareCount_;
+	return 0 == holdings_.size();
 }
 
 void Portfolio::Purchase(const std::string& symbol, unsigned int shareCount) {
 	if (shareCount <= 0) {
 		throw InvalidPurchaseException{};
 	}
-	shareCount_ = shareCount;
+	holdings_[symbol] = shareCount;
 }
 
 unsigned int Portfolio::ShareCount(const std::string& symbol) const {
-	return shareCount_;
+	auto it = holdings_.find(symbol);
+	if (it == holdings_.end()) return 0;
+	return it->second;
 }

@@ -8,9 +8,11 @@ using namespace ::testing;
 class APortfolio : public Test {
 public:
 	static const string IBM;
+	static const string SAMSUNG;
 	Portfolio portfolio_;
 };
 const string APortfolio::IBM{"IBM"};
+const string APortfolio::SAMSUNG{"SAMSUNG"};
 
 TEST_F(APortfolio, IsEmptyWhenCreated) {
 	ASSERT_TRUE(portfolio_.IsEmpty());
@@ -32,4 +34,18 @@ TEST_F(APortfolio, AnswersShareCountForPurchasedSymbol) {
 
 TEST_F(APortfolio, ThrowsOnPurchaseOfZeroShares) {
 	ASSERT_THROW(portfolio_.Purchase(IBM, 0), InvalidPurchaseException);
+}
+
+TEST_F(APortfolio, AnswersSharesForAppropriateSymbol) {
+	portfolio_.Purchase(IBM, 5);
+	portfolio_.Purchase(SAMSUNG, 10);
+
+	ASSERT_THAT(portfolio_.ShareCount(IBM), Eq(5u));
+}
+
+TEST_F(APortfolio, SharesReflectsAccumulatedPurchasesOfSameSymbol) {
+	portfolio_.Purchase(IBM, 5u);
+	portfolio_.Purchase(IBM, 15u);
+
+	ASSERT_THAT(portfolio_.ShareCount(IBM), Eq(5u + 15));
 }
