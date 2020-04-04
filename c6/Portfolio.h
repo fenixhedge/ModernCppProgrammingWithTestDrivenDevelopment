@@ -11,8 +11,8 @@ class InvalidPurchaseException : public std::exception {
 class Portfolio {
 public:
 	bool IsEmpty() const;
-	void Purchase(const std::string& symbol, unsigned int shareCount);
-	unsigned int ShareCount(const std::string& symbol) const;
+	void Purchase(const std::string& symbol, unsigned int shares);
+	unsigned int Shares(const std::string& symbol) const;
 
 private:
 	std::unordered_map<std::string, unsigned int> holdings_;
