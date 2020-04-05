@@ -14,6 +14,9 @@ void Portfolio::Purchase(const std::string& symbol, unsigned int shares) {
 }
 
 void Portfolio::Sell(const string& symbol, unsigned int shares) {
+	if (Shares(symbol) < shares) {
+		throw InvalidSellException{};
+	}
 	holdings_[symbol] = Shares(symbol) - shares;
 }
 

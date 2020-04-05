@@ -56,3 +56,7 @@ TEST_F(APortfolio, ReducesSharesOfSymbolOnSell) {
 
 	ASSERT_THAT(portfolio_.Shares(SAMSUNG), Eq(30u - 13));
 }
+
+TEST_F(APortfolio, ThrowsWhenSellingMoreThanPurchased) {
+	ASSERT_THROW(portfolio_.Sell(SAMSUNG, 1u), InvalidSellException);
+}

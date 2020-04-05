@@ -8,6 +8,9 @@
 class InvalidPurchaseException : public std::exception {
 };
 
+class InvalidSellException : public std::exception {
+};
+
 class Portfolio {
 public:
 	bool IsEmpty() const;
