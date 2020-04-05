@@ -12,6 +12,7 @@ class Portfolio {
 public:
 	bool IsEmpty() const;
 	void Purchase(const std::string& symbol, unsigned int shares);
+	void Sell(const std::string& symbol, unsigned int shares);
 	unsigned int Shares(const std::string& symbol) const;
 
 private:

@@ -49,3 +49,10 @@ TEST_F(APortfolio, SharesReflectsAccumulatedPurchasesOfSameSymbol) {
 
 	ASSERT_THAT(portfolio_.Shares(IBM), Eq(5u + 15));
 }
+
+TEST_F(APortfolio, ReducesSharesOfSymbolOnSell) {
+	portfolio_.Purchase(SAMSUNG, 30);
+	portfolio_.Sell(SAMSUNG, 13);
+
+	ASSERT_THAT(portfolio_.Shares(SAMSUNG), Eq(30u - 13));
+}
