@@ -60,3 +60,12 @@ TEST_F(APortfolio, ReducesSharesOfSymbolOnSell) {
 TEST_F(APortfolio, ThrowsWhenSellingMoreThanPurchased) {
 	ASSERT_THROW(portfolio_.Sell(SAMSUNG, 1u), InvalidSellException);
 }
+
+TEST_F(APortfolio, AnswersThePurchaseRecordForASinglePurchase) {
+	portfolio_.Purchase(SAMSUNG, 5);
+	auto purchases = portfolio_.Purchases(SAMSUNG);
+
+	auto purchase = purchases[0];
+	ASSERT_THAT(purchase.Shares, Eq(5u));
+	ASSERT_THAT(purchase.Date, Eq(Portfolio::FIXED_PURCHASE_DATE));
+}
