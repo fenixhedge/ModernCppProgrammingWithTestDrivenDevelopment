@@ -19,7 +19,19 @@ public:
 			unsigned int shares,
 			const date& transactionDate=APortfolio::ArbitraryDate) {
 		portfolio_.Purchase(symbol, shares, transactionDate);
-	}	
+	}
+	void Sell(
+			const string& symbol,
+			unsigned int shares,
+			const date& transactionDate=APortfolio::ArbitraryDate) {
+		portfolio_.Sell(symbol, shares, transactionDate);
+	}
+
+	void ASSERT_PURCHASE(
+			PurchaseRecord& purchase, int shares, const date& date) {
+		ASSERT_THAT(purchase.Shares, Eq(shares));
+		ASSERT_THAT(purchase.Date, Eq(date));
+	}
 };
 const string APortfolio::IBM{"IBM"};
 const string APortfolio::SAMSUNG{"SAMSUNG"};
@@ -44,7 +56,7 @@ TEST_F(APortfolio, AnswersSharesForPurchasedSymbol) {
 }
 
 TEST_F(APortfolio, ThrowsOnPurchaseOfZeroShares) {
-	ASSERT_THROW(Purchase(IBM, 0), InvalidPurchaseException);
+	ASSERT_THROW(Purchase(IBM, 0), SharesCannotBeZeroException);
 }
 
 TEST_F(APortfolio, AnswersSharesForAppropriateSymbol) {
@@ -63,13 +75,13 @@ TEST_F(APortfolio, SharesReflectsAccumulatedPurchasesOfSameSymbol) {
 
 TEST_F(APortfolio, ReducesSharesOfSymbolOnSell) {
 	Purchase(SAMSUNG, 30);
-	portfolio_.Sell(SAMSUNG, 13);
+	Sell(SAMSUNG, 13);
 
 	ASSERT_THAT(portfolio_.Shares(SAMSUNG), Eq(30u - 13));
 }
 
 TEST_F(APortfolio, ThrowsWhenSellingMoreThanPurchased) {
-	ASSERT_THROW(portfolio_.Sell(SAMSUNG, 1u), InvalidSellException);
+	ASSERT_THROW(Sell(SAMSUNG, 1u), InvalidSellException);
 }
 
 TEST_F(APortfolio, AnswersThePurchaseRecordForASinglePurchase) {
@@ -77,18 +89,17 @@ TEST_F(APortfolio, AnswersThePurchaseRecordForASinglePurchase) {
 	Purchase(SAMSUNG, 5, dateOfPurchase);
 
 	auto purchases = portfolio_.Purchases(SAMSUNG);
-
-	auto purchase = purchases[0];
-	ASSERT_THAT(purchase.Shares, Eq(5));
-	ASSERT_THAT(purchase.Date, Eq(dateOfPurchase));
+	ASSERT_PURCHASE(purchases[0], 5, dateOfPurchase);
 }
 
 TEST_F(APortfolio, IncludesSalesInPurchaseRecords) {
 	Purchase(SAMSUNG, 10);
-	portfolio_.Sell(SAMSUNG, 5, ArbitraryDate);
+	Sell(SAMSUNG, 5, ArbitraryDate);
 
 	auto purchases = portfolio_.Purchases(SAMSUNG);
-	auto purchase = purchases[1];
-	ASSERT_THAT(purchase.Shares, Eq(-5));
-	ASSERT_THAT(purchase.Date, Eq(ArbitraryDate));
+	ASSERT_PURCHASE(purchases[1], -5, ArbitraryDate);
+}
+
+TEST_F(APortfolio, ThrowsOnSellOfZeroShares) {
+	ASSERT_THROW(Sell(IBM, 0), SharesCannotBeZeroException);
 }

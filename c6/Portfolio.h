@@ -7,7 +7,7 @@
 #include <vector>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-class InvalidPurchaseException : public std::exception {
+class SharesCannotBeZeroException : public std::exception {
 };
 
 class InvalidSellException : public std::exception {
@@ -25,20 +25,16 @@ struct PurchaseRecord {
 
 class Portfolio {
 public:
-	static const boost::gregorian::date FIXED_PURCHASE_DATE;
-
 	bool IsEmpty() const;
 
 	void Purchase(
 		const std::string& symbol,
 		unsigned int shares,
-		const boost::gregorian::date& transactionDate=
-			Portfolio::FIXED_PURCHASE_DATE);
+		const boost::gregorian::date& transactionDate);
 	void Sell(
 		const std::string& symbol,
 		unsigned int shares,
-		const boost::gregorian::date& transactionDate=
-			Portfolio::FIXED_PURCHASE_DATE);
+		const boost::gregorian::date& transactionDate);
 
 	unsigned int Shares(const std::string& symbol) const;
 	std::vector<PurchaseRecord> Purchases(const std::string& symbol) const;
