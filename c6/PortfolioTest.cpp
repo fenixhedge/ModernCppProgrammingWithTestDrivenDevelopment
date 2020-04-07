@@ -115,3 +115,7 @@ TEST_F(APortfolio, SeparatesPurchaseRecordsBySymbol) {
 	auto sales = portfolio_.Purchases(SAMSUNG);
 	ASSERT_THAT(sales, ElementsAre(PurchaseRecord(5, ArbitraryDate)));
 }
+
+TEST_F(APortfolio, AnswersEmptyPurchaseRecordVectorWhenSymbolNotFound) {
+	ASSERT_THAT(portfolio_.Purchases(SAMSUNG), Eq(vector<PurchaseRecord>{}));
+}
