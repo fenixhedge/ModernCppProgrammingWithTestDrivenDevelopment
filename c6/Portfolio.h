@@ -7,20 +7,13 @@
 #include <vector>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
+#include "PurchaseRecord.h"
+#include "Holding.h"
+
 class SharesCannotBeZeroException : public std::exception {
 };
 
 class InvalidSellException : public std::exception {
-};
-
-struct PurchaseRecord {
-	PurchaseRecord(int shares, const boost::gregorian::date& date)
-		: Shares(shares)
-		, Date(date) {
-	}
-
-	int Shares;
-	boost::gregorian::date Date;
 };
 
 class Portfolio {
@@ -58,6 +51,7 @@ private:
 	}
 
 	std::unordered_map<std::string, std::vector<PurchaseRecord>> purchaseRecords_;
+	std::unordered_map<std::string, Holding> holdings_;
 };
 
 #endif
