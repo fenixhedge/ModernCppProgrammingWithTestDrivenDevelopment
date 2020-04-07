@@ -9,19 +9,22 @@ bool Portfolio::IsEmpty() const {
 	return 0 == holdings_.size();
 }
 
-void Portfolio::Purchase(const std::string& symbol, unsigned int shares) {
+void Portfolio::Purchase(
+		const std::string& symbol, unsigned int shares, const date& transactionDate) {
 	if (shares == 0) {
 		throw InvalidPurchaseException{};
 	}
 	holdings_[symbol] = Shares(symbol) + shares;
-	purchases_.push_back(PurchaseRecord(shares, FIXED_PURCHASE_DATE));
+	purchases_.push_back(PurchaseRecord(shares, transactionDate));
 }
 
-void Portfolio::Sell(const string& symbol, unsigned int shares) {
+void Portfolio::Sell(
+		const string& symbol, unsigned int shares, const date& transactionDate) {
 	if (Shares(symbol) < shares) {
 		throw InvalidSellException{};
 	}
 	holdings_[symbol] = Shares(symbol) - shares;
+	purchases_.push_back(PurchaseRecord(-shares, transactionDate));
 }
 
 unsigned int Portfolio::Shares(const std::string& symbol) const {
