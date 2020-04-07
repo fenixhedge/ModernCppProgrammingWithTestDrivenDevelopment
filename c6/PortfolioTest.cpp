@@ -103,3 +103,15 @@ TEST_F(APortfolio, IncludesSalesInPurchaseRecords) {
 TEST_F(APortfolio, ThrowsOnSellOfZeroShares) {
 	ASSERT_THROW(Sell(IBM, 0), SharesCannotBeZeroException);
 }
+
+bool operator==(const PurchaseRecord& lhs, const PurchaseRecord& rhs) {
+	return lhs.Shares == rhs.Shares && lhs.Date == rhs.Date;
+}
+
+TEST_F(APortfolio, SeparatesPurchaseRecordsBySymbol) {
+	Purchase(SAMSUNG, 5, ArbitraryDate);
+	Purchase(IBM, 1, ArbitraryDate);
+
+	auto sales = portfolio_.Purchases(SAMSUNG);
+	ASSERT_THAT(sales, ElementsAre(PurchaseRecord(5, ArbitraryDate)));
+}

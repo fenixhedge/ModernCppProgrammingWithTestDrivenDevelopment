@@ -43,10 +43,14 @@ private:
 	void Transact(const std::string& symbol, int shares, const boost::gregorian::date& transactionDate);
 	void ThrowIfShareCountIsZero(int shareChange) const;
 	void UpdateShares(const std::string& symbol, int shareChange);
-	void AddPurchaseRecord(int shareChange, const boost::gregorian::date& date);
+	void AddPurchaseRecord(
+			const std::string& symbol,
+			int shareChange,
+			const boost::gregorian::date& date);
 
 	std::unordered_map<std::string, unsigned int> holdings_;
 	std::vector<PurchaseRecord> purchases_;
+	std::unordered_map<std::string, std::vector<PurchaseRecord>> purchaseRecords_;
 };
 
 #endif
