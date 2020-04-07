@@ -8,12 +8,8 @@ bool Portfolio::IsEmpty() const {
 }
 
 void Portfolio::Purchase(
-		const std::string& symbol, unsigned int shares, const date& transactionDate) {
-	if (shares == 0) {
-		throw SharesCannotBeZeroException{};
-	}
-	holdings_[symbol] = Shares(symbol) + shares;
-	purchases_.push_back(PurchaseRecord(shares, transactionDate));
+		const string& symbol, unsigned int shares, const date& transactionDate) {
+	Transact(symbol, shares, transactionDate);
 }
 
 void Portfolio::Sell(
@@ -21,11 +17,28 @@ void Portfolio::Sell(
 	if (Shares(symbol) < shares) {
 		throw InvalidSellException{};
 	}
-	if (shares == 0) {
+	Transact(symbol, -shares, transactionDate);
+}
+
+void Portfolio::Transact(
+		const string& symbol, int shareChange, const date& transactionDate) {
+	ThrowIfShareCountIsZero(shareChange);
+	UpdateShares(symbol, shareChange);
+	AddPurchaseRecord(shareChange, transactionDate);
+}
+
+void Portfolio::ThrowIfShareCountIsZero(int shareChange) const {
+	if (shareChange == 0) {
 		throw SharesCannotBeZeroException{};
 	}
-	holdings_[symbol] = Shares(symbol) - shares;
-	purchases_.push_back(PurchaseRecord(-shares, transactionDate));
+}
+
+void Portfolio::UpdateShares(const string& symbol, int shareChange) {
+	holdings_[symbol] = Shares(symbol) + shareChange;
+}
+
+void Portfolio::AddPurchaseRecord(int shareChange, const date& date) {
+	purchases_.push_back(PurchaseRecord(shareChange, date));
 }
 
 unsigned int Portfolio::Shares(const std::string& symbol) const {

@@ -40,6 +40,11 @@ public:
 	std::vector<PurchaseRecord> Purchases(const std::string& symbol) const;
 
 private:
+	void Transact(const std::string& symbol, int shares, const boost::gregorian::date& transactionDate);
+	void ThrowIfShareCountIsZero(int shareChange) const;
+	void UpdateShares(const std::string& symbol, int shareChange);
+	void AddPurchaseRecord(int shareChange, const boost::gregorian::date& date);
+
 	std::unordered_map<std::string, unsigned int> holdings_;
 	std::vector<PurchaseRecord> purchases_;
 };
