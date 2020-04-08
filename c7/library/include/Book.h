@@ -2,15 +2,16 @@
 
 #include <string>
 
-class Book {
+class Book
+{
 public:
 	Book();
 	Book(
-			const std::string& title,
-			const std::string& author,
-			const unsigned short year,
-			const std::string& classification,
-			unsigned short type = Book::TYPE_BOOK);
+		const std::string& title, 
+		const std::string& author, 
+		const unsigned short year, 
+		const std::string& classification, 
+		unsigned short type = Book::TYPE_BOOK);
 	virtual ~Book();
 
 	Book& operator=(const Book&);
@@ -37,7 +38,7 @@ public:
 private:
 	std::string mTitle;
 	std::string mAuthor;
-	std::string mClassification;
 	unsigned short mYear;
+	std::string mClassification;
 	unsigned short mType;
 };
