@@ -49,6 +49,9 @@ public:
     }
 };
 
+class AHolding : public HoldingTest {
+};
+
 const date HoldingTest::ArbitraryDate(2013, Jan, 1);
 
 TEST_F(HoldingTest, BarcodeRequiresColon)
@@ -187,14 +190,22 @@ TEST_F(HoldingTest, ck)
 }
 
 //START:Availability
-TEST_F(HoldingTest, Availability)
+TEST_F(AHolding, IsNotAvailableAfterCheckout)
+{
+   holding->Transfer(EAST_BRANCH);
+
+   holding->CheckOut(ArbitraryDate);
+
+   EXPECT_FALSE(holding->IsAvailable());
+}
+
+TEST_F(AHolding, IsAvailableAfterCheckin)
 {
    holding->Transfer(EAST_BRANCH);
    holding->CheckOut(ArbitraryDate);
-   EXPECT_FALSE(holding->IsAvailable());
 
-   date nextDay = ArbitraryDate + date_duration(1);
-   holding->CheckIn(nextDay, EAST_BRANCH);
+   holding->CheckIn(ArbitraryDate + date_duration(1), EAST_BRANCH);
+
    EXPECT_TRUE(holding->IsAvailable());
 }
 //END:Availability
