@@ -12,6 +12,10 @@ public:
 		  buf_used_(0) {
 	}
 
+	~LineReader() {
+		close(fd_);
+	}
+
 	static const size_t kMaxLineLen = 512;
 
 	bool GetNextLine(const char **line, unsigned int *len) {
