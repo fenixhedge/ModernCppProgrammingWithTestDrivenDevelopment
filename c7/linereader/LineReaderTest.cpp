@@ -16,12 +16,19 @@ static int TemporaryFile() {
 	return fd;
 }
 
+static int TemporaryFile(const char* record) {
+	const int fd = TemporaryFile();
+	write(fd, record, strlen(record));
+	lseek(fd, 0, SEEK_SET);
+	return fd;
+}
+
 namespace {
 typedef testing::Test LineReaderTest;
 }
 
 TEST(LineReaderTest, EmptyFile) {
-	const int fd = TemporaryFile();
+	const int fd = TemporaryFile("");
 	LineReader reader(fd);
 
 	const char *line;
@@ -32,9 +39,7 @@ TEST(LineReaderTest, EmptyFile) {
 }
 
 TEST(LineReaderTest, OneLineTeminated) {
-	const int fd = TemporaryFile();
-	write(fd, "a\n", 2);
-	lseek(fd, 0, SEEK_SET);
+	const int fd = TemporaryFile("a\n");
 	LineReader reader(fd);
 
 	const char *line;
@@ -51,9 +56,7 @@ TEST(LineReaderTest, OneLineTeminated) {
 }
 
 TEST(LineReaderTest, OneLine) {
-	const int fd = TemporaryFile();
-	write(fd, "a", 1);
-	lseek(fd, 0, SEEK_SET);
+	const int fd = TemporaryFile("a");
 	LineReader reader(fd);
 
 	const char *line;
@@ -70,9 +73,7 @@ TEST(LineReaderTest, OneLine) {
 }
 
 TEST(LineReaderTest, TwoLineTeminated) {
-	const int fd = TemporaryFile();
-	write(fd, "a\nb\n", 4);
-	lseek(fd, 0, SEEK_SET);
+	const int fd = TemporaryFile("a\nb\n");
 	LineReader reader(fd);
 
 	const char *line;
@@ -95,9 +96,7 @@ TEST(LineReaderTest, TwoLineTeminated) {
 }
 
 TEST(LineReaderTest, TwoLine) {
-	const int fd = TemporaryFile();
-	write(fd, "a\nb", 3);
-	lseek(fd, 0, SEEK_SET);
+	const int fd = TemporaryFile("a\nb");
 	LineReader reader(fd);
 
 	const char *line;
@@ -120,11 +119,9 @@ TEST(LineReaderTest, TwoLine) {
 }
 
 TEST(LineReaderTest, MaxLength) {
-	const int fd = TemporaryFile();
 	char l[LineReader::kMaxLineLen - 1];
 	memset(l, 'a', sizeof(l));
-	write(fd, l, sizeof(l));
-	lseek(fd, 0, SEEK_SET);
+	const int fd = TemporaryFile(l);
 	LineReader reader(fd);
 
 	const char *line;
@@ -138,11 +135,9 @@ TEST(LineReaderTest, MaxLength) {
 }
 
 TEST(LineReaderTest, TooLong) {
-	const int fd = TemporaryFile();
 	char l[LineReader::kMaxLineLen];
 	memset(l, 'a', sizeof(l));
-	write(fd, l, sizeof(l));
-	lseek(fd, 0, SEEK_SET);
+	const int fd = TemporaryFile(l);
 	LineReader reader(fd);
 
 	const char *line;
