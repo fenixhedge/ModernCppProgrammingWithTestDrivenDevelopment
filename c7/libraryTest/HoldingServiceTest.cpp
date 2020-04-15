@@ -270,3 +270,19 @@ TEST_F(HoldingServiceTest, CheckInLateUpdatesPatronFineBalance)
 
     ASSERT_THAT(FindPatronWithId(patronCardNumber).FineBalance(), Eq(Book::BOOK_DAILY_FINE));
 }
+
+//START:AAA
+TEST_F(HoldingServiceTest, X)
+{
+    HoldingBarcode barcode(THE_TRIAL_CLASSIFICATION, 1);
+    string patronCardNumber("p5");
+    CheckOut(barcode, branch1, patronCardNumber);
+    date_duration oneDayLate(Book::BOOK_CHECKOUT_PERIOD + 1);
+
+    holdingService.CheckIn(barcode.AsString(), 
+            *arbitraryDate + oneDayLate, branch2->Id());
+
+    ASSERT_THAT(FindPatronWithId(patronCardNumber).FineBalance(), 
+            Eq(Book::BOOK_DAILY_FINE));
+}
+//END:AAA
