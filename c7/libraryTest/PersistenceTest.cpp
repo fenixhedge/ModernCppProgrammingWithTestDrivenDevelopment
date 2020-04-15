@@ -31,18 +31,17 @@ TEST_P(PersistenceTest, SizeIncrementsWithEachAdd)
 
 TEST_P(PersistenceTest, ReturnsNullPointerWhenItemNotFound)
 {
-    auto_ptr<TestSerializable> found = persister->Get("1");
-
-    TestSerializable* serializable = found.get();
-
-    ASSERT_THAT(serializable, IsNull());
+    ASSERT_THAT(persister->Get("no id there").get(), IsNull());
 }
 
 TEST_P(PersistenceTest, AddedItemCanBeRetrievedById)
 {
     persister->Add(*objectWithId1);
 
-    ASSERT_THAT(*persister->Get("1"), Eq(*objectWithId1));
+    auto found = persister->Get("1");
+
+    ASSERT_THAT(found.get(), NotNull());
+    ASSERT_THAT(found.get(), Pointee(*objectWithId1));
 }
 
 TEST_P(PersistenceTest, GetAnswersNullWhenNoMatchingEntries)
