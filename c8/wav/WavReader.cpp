@@ -83,15 +83,21 @@ string WavReader::toString(int8_t* bytes, unsigned int size) {
 void WavReader::writeSamples(ostream* out, char* data,
        uint32_t startingSample,
        uint32_t samplesToWrite,
-       uint32_t bytesPerSample) {
+       uint32_t bytesPerSample,
+       uint32_t channels) {
    rLog(channel, "writing %u samples", samplesToWrite);
 
    for (auto sample = startingSample; 
         sample < startingSample + samplesToWrite; 
         sample++) {
-      auto byteOffsetForSample = sample * bytesPerSample;
-      for (uint32_t byte{0}; byte < bytesPerSample; byte++) 
-         out->put(data[byteOffsetForSample + byte]);
+      auto byteOffsetForSample = sample * bytesPerSample * channels;
+
+      for (uint32_t channel{0}; channel < channels; channel++) {
+         auto byteOffsetForChannel =
+            byteOffsetForSample + (channel * bytesPerSample);
+         for (uint32_t byte{0}; byte < bytesPerSample; byte++) 
+            out->put(data[byteOffsetForChannel + byte]);
+      }
    }
 }
 

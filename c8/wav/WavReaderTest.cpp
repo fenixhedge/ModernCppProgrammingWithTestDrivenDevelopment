@@ -40,3 +40,16 @@ TEST_F(WavReader_WriteSamples, WritesMultibyteSampleFromMiddle) {
     reader.writeSamples(&out, data, startingSample, samplesToWrite, bytesPerSample);
     ASSERT_EQ("89ABCD", out.str());
 }
+
+TEST_F(WavReader_WriteSamples, IncorporatesChannelCount) {
+    char data[] {"0123456789ABCDEFG"};
+    uint32_t bytesPerSample { 2 };
+    uint32_t startingSample { 0 };
+    uint32_t samplesToWrite { 2 };
+    uint32_t channels { 2 };
+
+    reader.writeSamples(
+          &out, data, startingSample, samplesToWrite, bytesPerSample, channels);
+
+    ASSERT_EQ("01234567", out.str());
+}
