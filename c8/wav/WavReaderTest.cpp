@@ -34,9 +34,9 @@ TEST_F(WavReader_WriteSamples, WritesSingleSample) {
 TEST_F(WavReader_WriteSamples, WritesMultibyteSampleFromMiddle) {
     char data[] {"0123456789ABCDEFG"};
     uint32_t bytesPerSample { 2 };
-    uint32_t startingSample { 3 };
-    uint32_t samplesToWrite { 4 };
+    uint32_t startingSample { 4 };
+    uint32_t samplesToWrite { 3 };
 
     reader.writeSamples(&out, data, startingSample, samplesToWrite, bytesPerSample);
-    ASSERT_EQ("89ABCDEFG", out.str());
+    ASSERT_EQ("89ABCD", out.str());
 }
