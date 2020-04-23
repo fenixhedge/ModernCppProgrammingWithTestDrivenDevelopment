@@ -53,3 +53,18 @@ TEST_F(WavReader_WriteSamples, IncorporatesChannelCount) {
 
     ASSERT_EQ("01234567", out.str());
 }
+
+class WavReader_DataLength : public testing::Test {
+public:
+    WavReader reader{"", ""};
+};
+
+TEST_F(WavReader_DataLength, IsProductOfChannels_BytesPerSample_and_Samples) {
+    uint32_t bytesPerSample { 2 };
+    uint32_t samples { 5 };
+    uint32_t channels { 4 };
+    
+    uint32_t length { reader.dataLength(bytesPerSample, samples, channels) };
+
+    ASSERT_EQ(2 * 5 * 4, length);
+}

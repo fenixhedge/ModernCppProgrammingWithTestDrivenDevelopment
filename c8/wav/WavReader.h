@@ -36,6 +36,11 @@ public:
          uint32_t bytesPerSample,
          uint32_t channels = 1);
 
+   uint32_t dataLength(
+         uint32_t samples,
+         uint32_t bytesPerSample,
+         uint32_t channels) const;
+
 private:
    rlog::StdioNode log{STDERR_FILENO};
    WavDescriptor* descriptor_;
