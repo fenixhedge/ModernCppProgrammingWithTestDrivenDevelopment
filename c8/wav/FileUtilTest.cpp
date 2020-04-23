@@ -57,3 +57,13 @@ TEST_F(FileUtil_Execute, IsPassedStreamFromFile) {
    ASSERT_EQ(returnValue, result);
    ASSERT_EQ(content, buffer);
 }
+
+TEST_F(FileUtil_Execute, DemonstratedWithStreamUtilsSizeFunction) {
+   string content{"abcdefg"};
+   createTempFile(content);
+
+   streamsize size = util.execute(TempFileName,
+                  [&](istream& s) { return StreamUtil::size(s); });
+
+   ASSERT_EQ(content.length() + sizeof('\0'), (unsigned)size);
+}
