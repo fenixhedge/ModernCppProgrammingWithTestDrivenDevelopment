@@ -12,6 +12,7 @@
 #include <string>
 #include <fstream>
 #include <boost/filesystem.hpp>
+#include <memory>
 
 #include "WavDescriptor.h"
 #include "rlog/StdioNode.h"
@@ -19,13 +20,27 @@
 
 bool hasExtension(const std::string& text, const std::string& substring);
 
-struct FormatSubchunk;
 struct FormatSubchunkHeader;
-struct DataChunk;
+
+struct FormatSubchunk {
+   uint16_t formatTag;
+   uint16_t channels;
+   uint32_t samplesPerSecond;
+   uint32_t averageBytesPerSecond;
+   uint16_t blockAlign;
+   uint16_t bitsPerSample;
+};
+
+struct DataChunk {
+   uint32_t length;
+};
 
 class WavReader {
 public:
-   WavReader(const std::string& source, const std::string& dest);
+   WavReader(
+         const std::string& source,
+         const std::string& dest,
+         std::shared_ptr<WavDescriptor> descriptor = nullptr);
    virtual ~WavReader();
    void open(const std::string& name, bool trace);
    void list(
@@ -53,9 +68,11 @@ public:
          DataChunk& dataChunk,
          char* data);
 
+   uint32_t totalSeconds;
+
 private:
    rlog::StdioNode log{STDERR_FILENO};
-   WavDescriptor* descriptor_;
+   std::shared_ptr<WavDescriptor> descriptor_;
 
    void readAndWriteHeaders(
          const std::string& name,

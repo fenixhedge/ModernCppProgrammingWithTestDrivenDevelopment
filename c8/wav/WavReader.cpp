@@ -30,21 +30,8 @@ struct FormatSubchunkHeader {
    uint32_t subchunkSize;
 };
 
-struct FormatSubchunk {
-   uint16_t formatTag;
-   uint16_t channels;
-   uint32_t samplesPerSecond;
-   uint32_t averageBytesPerSecond;
-   uint16_t blockAlign;
-   uint16_t bitsPerSample;
-};
-
 struct FactOrData {
    int8_t tag[4];
-};
-
-struct DataChunk {
-   uint32_t length;
 };
 
 struct FactChunk {
@@ -52,10 +39,16 @@ struct FactChunk {
    uint32_t samplesPerChannel;
 };
 
-WavReader::WavReader(const std::string& source, const std::string& dest) 
+WavReader::WavReader(
+      const std::string& source,
+      const std::string& dest,
+      shared_ptr<WavDescriptor> descriptor)
    : source_(source)
-   , dest_(dest) {
-   descriptor_ = new WavDescriptor(dest);
+   , dest_(dest)
+   , descriptor_(descriptor) {
+   if (!descriptor_) {
+      descriptor_ = make_shared<WavDescriptor>(dest);
+   }
 
    channel = DEF_CHANNEL("info/wav", Log_Debug);
    log.subscribeTo((RLogNode*)RLOG_CHANNEL("info/wav"));
@@ -63,7 +56,7 @@ WavReader::WavReader(const std::string& source, const std::string& dest)
 }
 
 WavReader::~WavReader() {
-   delete descriptor_;
+   descriptor_.reset();
    delete channel;
 }
 
@@ -126,7 +119,7 @@ void WavReader::open(const std::string& name, bool trace) {
    
    auto data = readData(file, dataChunk.length);
 
-   writeSnippet(name, out, formatSubchunk, dataChunk, data);
+   writeSnippet(name, file, out, formatSubchunk, dataChunk, data);
 }
 
 void WavReader::read(istream& file, DataChunk& dataChunk) {
@@ -227,7 +220,7 @@ void WavReader::writeSnippet(
 
    samplesToWrite = min(samplesToWrite, totalSamples);
 
-   uint32_t totalSeconds{totalSamples / formatSubchunk.samplesPerSecond};
+   totalSeconds = totalSamples / formatSubchunk.samplesPerSecond;
    rLog(channel, "total seconds %u ", totalSeconds);
 
    dataChunk.length = dataLength(

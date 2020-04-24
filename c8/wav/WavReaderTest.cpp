@@ -1,11 +1,15 @@
 #include "gtest/gtest.h"
-#include "WavReader.h"
+#include "gmock/gmock.h"
+
 #include <iostream>
 #include <string>
 
-using namespace std;
+#include "WavReader.h"
 
-class WavReaderTest : public testing::Test {
+using namespace std;
+using namespace testing;
+
+class WavReaderTest : public Test {
 };
 
 TEST(WavReaderTest, HasExtensionTest) {
@@ -16,7 +20,7 @@ TEST(WavReaderTest, HasExtensionTest) {
    ASSERT_TRUE(!hasExtension(s, bigger));
 }
 
-class WavReader_WriteSamples : public testing::Test {
+class WavReader_WriteSamples : public Test {
 public:
     WavReader reader{"", ""};
     ostringstream out;
@@ -54,7 +58,7 @@ TEST_F(WavReader_WriteSamples, IncorporatesChannelCount) {
     ASSERT_EQ("01234567", out.str());
 }
 
-class WavReader_DataLength : public testing::Test {
+class WavReader_DataLength : public Test {
 public:
     WavReader reader{"", ""};
 };
@@ -67,4 +71,45 @@ TEST_F(WavReader_DataLength, IsProductOfChannels_BytesPerSample_and_Samples) {
     uint32_t length { reader.dataLength(bytesPerSample, samples, channels) };
 
     ASSERT_EQ(2 * 5 * 4, length);
+}
+
+class MockWavDescriptor : public WavDescriptor {
+public:
+   MockWavDescriptor() : WavDescriptor("") {}
+
+   MOCK_METHOD(void, add, (const string&, const string&, uint32_t totalSeconds, uint32_t samplesPerSecond, uint32_t), (override));
+};
+
+class WavReader_WriteSnippet : public Test {
+public:
+   shared_ptr<MockWavDescriptor> descriptor{new MockWavDescriptor};
+   WavReader reader{"", "", descriptor};
+   istringstream input{""};
+   FormatSubchunk formatSubchunk;
+   ostringstream output;
+   DataChunk dataChunk;
+   char* data;
+   uint32_t TwoBytesWorthOfBits{2 * 8};
+
+   void SetUp() override {
+      data = new char[4];
+   }
+
+   void TearDown() override {
+      delete[] data;
+   }
+};
+
+TEST_F(WavReader_WriteSnippet, UpdatesTotalSeconds) {
+   dataChunk.length = 8;
+   formatSubchunk.bitsPerSample = TwoBytesWorthOfBits;
+   formatSubchunk.samplesPerSecond = 1;
+
+   uint32_t actual_totalSeconds;
+   EXPECT_CALL(*descriptor, add)
+      .WillOnce(DoAll(SaveArg<2>(&actual_totalSeconds)));
+
+   reader.writeSnippet("any", input, output, formatSubchunk, dataChunk, data);
+
+   EXPECT_THAT(8 / 2 / 1, actual_totalSeconds);
 }
