@@ -19,6 +19,10 @@
 
 bool hasExtension(const std::string& text, const std::string& substring);
 
+struct FormatSubchunk;
+struct FormatSubchunkHeader;
+struct DataChunk;
+
 class WavReader {
 public:
    WavReader(const std::string& source, const std::string& dest);
@@ -30,6 +34,8 @@ public:
          std::vector<boost::filesystem::path>& found) const;
    void listAll() const;
    void publishSnippets();
+
+public:
    void writeSamples(std::ostream* out, char* data,
          uint32_t startingSample,
          uint32_t samplesToWrite,
@@ -41,9 +47,24 @@ public:
          uint32_t bytesPerSample,
          uint32_t channels) const;
 
+   void writeSnippet(
+         const std::string& name, std::istream& file, std::ostream& out,
+         FormatSubchunk& formatSubchunk,
+         DataChunk& dataChunk,
+         char* data);
+
 private:
    rlog::StdioNode log{STDERR_FILENO};
    WavDescriptor* descriptor_;
+
+   void readAndWriteHeaders(
+         const std::string& name,
+         std::istream& file,
+         std::ostream& out,
+         FormatSubchunk& formatSubchunk,
+         FormatSubchunkHeader& formatSubchunkHeader);
+   void read(std::istream& file, DataChunk& dataChunk);
+   char* readData(std::istream& file, int32_t length);
 
    void seekToEndOfHeader(std::ifstream& file, int headerLength);
    std::string toString(int8_t* c, unsigned int size);

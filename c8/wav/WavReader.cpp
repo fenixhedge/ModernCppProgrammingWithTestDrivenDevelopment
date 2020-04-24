@@ -112,6 +112,41 @@ void WavReader::open(const std::string& name, bool trace) {
 
    ofstream out{dest_ + "/" + name, ios::out | ios::binary};
 
+   FormatSubchunkHeader formatSubchunkHeader;
+   FormatSubchunk formatSubchunk;
+   readAndWriteHeaders(name, file, out, formatSubchunk, formatSubchunkHeader);
+
+   DataChunk dataChunk;
+   read(file, dataChunk);
+
+   rLog(channel, "riff header size = %u" , sizeof(RiffHeader));
+   rLog(channel, "subchunk header size = %u", sizeof(FormatSubchunkHeader));
+   rLog(channel, "subchunk size = %u", formatSubchunkHeader.subchunkSize);
+   rLog(channel, "data length = %u", dataChunk.length);
+   
+   auto data = readData(file, dataChunk.length);
+
+   writeSnippet(name, out, formatSubchunk, dataChunk, data);
+}
+
+void WavReader::read(istream& file, DataChunk& dataChunk) {
+   file.read(reinterpret_cast<char*>(&dataChunk), sizeof(DataChunk));
+}
+
+char* WavReader::readData(istream& file, int32_t length) {
+   auto data = new char[length];
+   file.read(data, length);
+   //file.close();
+
+   return data;
+}
+
+void WavReader::readAndWriteHeaders(
+      const std::string& name,
+      istream& file,
+      ostream& out,
+      FormatSubchunk& formatSubchunk,
+      FormatSubchunkHeader& formatSubchunkHeader) {
    RiffHeader header;
    file.read(reinterpret_cast<char*>(&header), sizeof(RiffHeader));
 
@@ -128,7 +163,6 @@ void WavReader::open(const std::string& name, bool trace) {
    }
    out.write(reinterpret_cast<char*>(&header), sizeof(RiffHeader));
 
-   FormatSubchunkHeader formatSubchunkHeader;
    file.read(reinterpret_cast<char*>(&formatSubchunkHeader), 
          sizeof(FormatSubchunkHeader));
 
@@ -142,7 +176,6 @@ void WavReader::open(const std::string& name, bool trace) {
    out.write(reinterpret_cast<char*>(&formatSubchunkHeader), 
          sizeof(FormatSubchunkHeader));
 
-   FormatSubchunk formatSubchunk;
    file.read(reinterpret_cast<char*>(&formatSubchunk), sizeof(FormatSubchunk));
 
    out.write(reinterpret_cast<char*>(&formatSubchunk), sizeof(FormatSubchunk));
@@ -178,23 +211,14 @@ void WavReader::open(const std::string& name, bool trace) {
       rLog(channel, "%s ERROR: unknown tag>%s<", name.c_str(), tag.c_str());
       return;
    }
+}
 
-   DataChunk dataChunk;
-   file.read(reinterpret_cast<char*>(&dataChunk), sizeof(DataChunk));
-
-   rLog(channel, "riff header size = %u" , sizeof(RiffHeader));
-   rLog(channel, "subchunk header size = %u", sizeof(FormatSubchunkHeader));
-   rLog(channel, "subchunk size = %u", formatSubchunkHeader.subchunkSize);
-   rLog(channel, "data length = %u", dataChunk.length);
-   
-   // TODO if odd there is a padding byte!
-   auto data = new char[dataChunk.length];
-   file.read(data, dataChunk.length);
-   file.close();
-
-   // all of it
-//   out.write(data, dataChunk.length);
-   // TODO: multiple channels
+void WavReader::writeSnippet(
+      const string& name, istream& file, ostream& out,
+      FormatSubchunk& formatSubchunk,
+      DataChunk& dataChunk,
+      char* data
+      ) {
    uint32_t secondsDesired{10};
    if (formatSubchunk.bitsPerSample == 0) formatSubchunk.bitsPerSample = 8;
    uint32_t bytesPerSample{formatSubchunk.bitsPerSample / uint32_t{8}};
@@ -220,7 +244,8 @@ void WavReader::open(const std::string& name, bool trace) {
    rLog(channel, "completed writing %s", name.c_str());
    descriptor_->add(dest_, name, 
          totalSeconds, formatSubchunk.samplesPerSecond, formatSubchunk.channels);
-   out.close();
+
+   //out.close();
 }
 
 uint32_t WavReader::dataLength(
