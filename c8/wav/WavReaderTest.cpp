@@ -111,7 +111,7 @@ public:
    }
 };
 
-TEST_F(WavReader_WriteSnippet, UpdatesTotalSeconds) {
+TEST_F(WavReader_WriteSnippet, SendsFileLengthAndTotalSecondsToDescriptor) {
    dataChunk.length = 8;
    formatSubchunk.bitsPerSample = TwoBytesWorthOfBits;
    formatSubchunk.samplesPerSecond = 1;
