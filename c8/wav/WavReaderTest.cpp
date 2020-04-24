@@ -77,22 +77,33 @@ class MockWavDescriptor : public WavDescriptor {
 public:
    MockWavDescriptor() : WavDescriptor("") {}
 
-   MOCK_METHOD(void, add, (const string&, const string&, uint32_t totalSeconds, uint32_t samplesPerSecond, uint32_t), (override));
+   MOCK_METHOD(void, add, (const string&, const string&, uint32_t, uint32_t, uint32_t, uint32_t), (override));
+};
+
+class MockFileUtil : public FileUtil {
+public:
+   MOCK_METHOD(streamsize, size, (const string& name), (override));
 };
 
 class WavReader_WriteSnippet : public Test {
 public:
    shared_ptr<MockWavDescriptor> descriptor{new MockWavDescriptor};
    WavReader reader{"", "", descriptor};
+
+   shared_ptr<MockFileUtil> fileUtil{make_shared<MockFileUtil>()};
+
    istringstream input{""};
    FormatSubchunk formatSubchunk;
    ostringstream output;
    DataChunk dataChunk;
    char* data;
    uint32_t TwoBytesWorthOfBits{2 * 8};
+   
+   const int ArbitraryFileSize{5};
 
    void SetUp() override {
       data = new char[4];
+      reader.useFileUtil(fileUtil);
    }
 
    void TearDown() override {
@@ -105,11 +116,16 @@ TEST_F(WavReader_WriteSnippet, UpdatesTotalSeconds) {
    formatSubchunk.bitsPerSample = TwoBytesWorthOfBits;
    formatSubchunk.samplesPerSecond = 1;
 
+   EXPECT_CALL(*fileUtil, size)
+      .WillOnce(Return(ArbitraryFileSize));
+
    uint32_t actual_totalSeconds;
+   uint32_t actual_fileSize;
    EXPECT_CALL(*descriptor, add)
-      .WillOnce(DoAll(SaveArg<2>(&actual_totalSeconds)));
+      .WillOnce(DoAll(SaveArg<2>(&actual_totalSeconds), SaveArg<5>(&actual_fileSize)));
 
    reader.writeSnippet("any", input, output, formatSubchunk, dataChunk, data);
 
    EXPECT_THAT(8 / 2 / 1, actual_totalSeconds);
+   EXPECT_THAT(ArbitraryFileSize, actual_fileSize);
 }

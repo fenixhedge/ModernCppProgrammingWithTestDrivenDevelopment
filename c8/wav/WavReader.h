@@ -17,6 +17,7 @@
 #include "WavDescriptor.h"
 #include "rlog/StdioNode.h"
 #include "rlog/RLogChannel.h"
+#include "FileUtil.h"
 
 bool hasExtension(const std::string& text, const std::string& substring);
 
@@ -50,7 +51,6 @@ public:
    void listAll() const;
    void publishSnippets();
 
-public:
    void writeSamples(std::ostream* out, char* data,
          uint32_t startingSample,
          uint32_t samplesToWrite,
@@ -68,11 +68,13 @@ public:
          DataChunk& dataChunk,
          char* data);
 
-   uint32_t totalSeconds;
+   void useFileUtil(std::shared_ptr<FileUtil> fileUtil);
 
 private:
    rlog::StdioNode log{STDERR_FILENO};
    std::shared_ptr<WavDescriptor> descriptor_;
+
+   std::shared_ptr<FileUtil> fileUtil_;
 
    void readAndWriteHeaders(
          const std::string& name,

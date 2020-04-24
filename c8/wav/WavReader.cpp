@@ -60,6 +60,10 @@ WavReader::~WavReader() {
    delete channel;
 }
 
+void WavReader::useFileUtil(std::shared_ptr<FileUtil> fileUtil) {
+   fileUtil_ = fileUtil;
+}
+
 void WavReader::publishSnippets() {
    directory_iterator itEnd; 
    for (directory_iterator it(source_); it != itEnd; ++it) 
@@ -220,7 +224,7 @@ void WavReader::writeSnippet(
 
    samplesToWrite = min(samplesToWrite, totalSamples);
 
-   totalSeconds = totalSamples / formatSubchunk.samplesPerSecond;
+   uint32_t totalSeconds { totalSamples / formatSubchunk.samplesPerSecond };
    rLog(channel, "total seconds %u ", totalSeconds);
 
    dataChunk.length = dataLength(
@@ -235,8 +239,12 @@ void WavReader::writeSnippet(
    writeSamples(&out, data, startingSample, samplesToWrite, bytesPerSample);
 
    rLog(channel, "completed writing %s", name.c_str());
+
+   auto fileSize = fileUtil_->size(name);
+
    descriptor_->add(dest_, name, 
-         totalSeconds, formatSubchunk.samplesPerSecond, formatSubchunk.channels);
+         totalSeconds, formatSubchunk.samplesPerSecond, formatSubchunk.channels,
+         fileSize);
 
    //out.close();
 }
