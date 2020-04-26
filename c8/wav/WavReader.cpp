@@ -1,5 +1,6 @@
 #include "WavReader.h"
 #include "WavDescriptor.h"
+#include "Snippet.h"
 
 #include <iostream>
 #include <cstring>
