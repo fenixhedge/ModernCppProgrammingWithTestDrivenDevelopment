@@ -10,7 +10,7 @@ add_definitions(-std=c++11)
 
 set(CMAKE_CXX_FLAGS "${CMAXE_CXX_FLAGS} -DRLOG_COMPONENT=debug -Wall")
 set(sources WavReader.cpp WavDescriptor.cpp)
-set(testSources WavReaderTest.cpp FileUtilTest.cpp StreamUtil.cpp StreamUtilTest.cpp)
+set(testSources WavReaderTest.cpp SnippetTest.cpp FileUtilTest.cpp StreamUtil.cpp StreamUtilTest.cpp)
 add_executable(utest testmain.cpp ${testSources} ${sources})
 add_executable(SnippetPublisher main.cpp ${sources})
 

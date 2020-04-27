@@ -1,6 +1,17 @@
 #ifndef Snippet_h
 #define Snippet_h
 
+#include "FileUtil.h"
+#include "WavDescriptor.h"
+#include "rlog/RLogChannel.h"
+#include "WavStruct.h"
+#undef RLOG_SECTION
+#define RLOG_SECTION
+
+#include <memory>
+#include <string>
+#include <algorithm>
+
 using namespace std;
 
 class Snippet {
@@ -14,7 +25,7 @@ public:
       , dest_(dest)
       , channel_(channel) { }
 
-   void writeSnippet(
+   void write(
          const string& name, istream& file, ostream& out,
          FormatSubchunk& formatSubchunk,
          DataChunk& dataChunk,
