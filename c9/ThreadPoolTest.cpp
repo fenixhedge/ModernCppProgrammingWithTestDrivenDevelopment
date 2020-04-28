@@ -52,23 +52,6 @@ TEST(AThreadPool, HasWorkAfterWorkRemovedButWorkRemains) {
    CHECK_TRUE(pool.hasWork());
 }
 
-TEST(AThreadPool, PullsWorkInAThread) {
-   pool.start();
-   condition_variable wasExecuted;
-   bool wasWorked{false};
-   Work work{[&] {
-      unique_lock<mutex> lock(m);
-      wasWorked = true;
-      wasExecuted.notify_all();
-   }};
-
-   pool.add(work);
-
-   unique_lock<mutex> lock(m);
-   CHECK_TRUE(wasExecuted.wait_for(lock, chrono::milliseconds(100),
-         [&] { return wasWorked; }));
-}
-
 TEST_GROUP(AThreadPool_AddRequest) {
    mutex m;
    ThreadPool pool;
@@ -93,6 +76,15 @@ TEST_GROUP(AThreadPool_AddRequest) {
             [&] { return expectedCount == count; }));
    }
 };
+
+TEST(AThreadPool_AddRequest, PullsWorkInAThread) {
+   Work work{[&] { incrementCountAndNotify(); }};
+   unsigned NumberOfWorkItems{1};
+
+   pool.add(work);
+
+   waitForCountAndFailOnTimeout(NumberOfWorkItems);
+}
 
 TEST(AThreadPool_AddRequest, ExecutesAllWork) {
    unsigned NumberOfWorkItems{3};
