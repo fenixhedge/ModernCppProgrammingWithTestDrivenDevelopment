@@ -102,4 +102,25 @@ TEST(AGeoServer_UsersInBox, AnswersUsersInSpecifiedRange) {
 }
 
 TEST(AGeoServer_UsersInBox, AnswersOnlyUsersInSpecifiedRange) {
+   server.updateLocation(
+      bUser, Location{ aUserLocation.go(Width / 2 + TenMeters, East) });
+   server.updateLocation(
+      cUser, Location{ aUserLocation.go(Width / 2 - TenMeters, East) });
+
+   auto users = server.usersInBox(aUser, Width, Height);
+
+   CHECK_EQUAL(vector<string>{ cUser }, UserNames(users));
+}
+
+TEST(AGeoServer_UsersInBox, HandlesLargeNumbersOfUsers) {
+   Location anotherLocation{aUserLocation.go(10, West)};	
+   const unsigned lots { 500000 };
+   for (unsigned i{0}; i < lots; i++) {
+      string user{"user" + to_string(i)};
+      server.track(user);
+      server.updateLocation(user, anotherLocation);
+   }
+
+   auto users = server.usersInBox(aUser, Width, Height);
+   CHECK_EQUAL(lots, users.size());
 }

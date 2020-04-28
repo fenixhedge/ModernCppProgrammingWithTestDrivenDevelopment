@@ -41,6 +41,12 @@ TEST(AnArea, AnswersLowerRightForBoundingRectangle) {
    DOUBLES_EQUAL(Zero.go(HalfTwoKm, South).latitude(), upperRight.latitude(), Tolerance);
 }
 
+TEST(AnArea, DesignatesAPointOutOfBoundsWhenTooFarNorth) {
+   Location tooNorth { Zero.go(HalfTwoKm + 10, North).latitude(), 0 };
+
+   CHECK_FALSE(OneByTwoAreaAtZero.inBounds(tooNorth));
+}
+
 TEST(AnArea, DesignatesAPointInBoundsWhenAtNorth) {
    Location northEdge { Zero.go(HalfTwoKm, North).latitude(), 0 };
 
