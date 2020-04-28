@@ -1,4 +1,5 @@
 #include <chrono>
+#include <set>
 #include <mutex>
 #include <condition_variable>
 
@@ -52,14 +53,16 @@ TEST(AThreadPool, HasWorkAfterWorkRemovedButWorkRemains) {
    CHECK_TRUE(pool.hasWork());
 }
 
-TEST_GROUP(AThreadPool_AddRequest) {
-   mutex m;
+class ThreadPoolThreadTest : public Utest {
+public:
    ThreadPool pool;
+   mutex m;
    condition_variable wasExecuted;
    unsigned count {0};
+   vector<shared_ptr<thread>> threads;
 
-   void setup() override {
-      pool.start();
+   void teardown() override {
+      for (auto& t : threads) t->join();
    }
 
    void incrementCountAndNotify() {
@@ -74,6 +77,12 @@ TEST_GROUP(AThreadPool_AddRequest) {
       unique_lock<mutex> lock(m);
       CHECK_TRUE(wasExecuted.wait_for(lock, time,
             [&] { return expectedCount == count; }));
+   }
+};
+
+TEST_GROUP_BASE(AThreadPool_AddRequest, ThreadPoolThreadTest) {
+   void setup() override {
+      pool.start();
    }
 };
 
@@ -93,4 +102,47 @@ TEST(AThreadPool_AddRequest, ExecutesAllWork) {
    for (unsigned int i{0}; i < NumberOfWorkItems; i++)
       pool.add(work);
    waitForCountAndFailOnTimeout(NumberOfWorkItems);
+}
+
+TEST(AThreadPool_AddRequest, HoldsUpUnderClientStress) {
+   Work work([&] { incrementCountAndNotify(); });
+   unsigned NumberOfWorkItems{100};
+   unsigned NumberOfThreads{100};
+
+   for (unsigned i{0}; i < NumberOfThreads; i++)
+      threads.push_back(
+         make_shared<thread>([&] {
+            for (unsigned j{0}; j < NumberOfWorkItems; j++)
+               pool.add(work);
+         }));
+   waitForCountAndFailOnTimeout(NumberOfThreads * NumberOfWorkItems);
+}
+
+TEST_GROUP_BASE(AThreadPoolWithMultipleThreads, ThreadPoolThreadTest) {
+   set<thread::id> threads;
+
+   void addThreadIfUnique(const thread::id& id) {
+      std::unique_lock<mutex> lock(m);
+      threads.insert(id);
+   }
+
+   size_t numberOfThreadsProcessed() {
+      return threads.size();
+   }
+};
+
+TEST(AThreadPoolWithMultipleThreads, DispatchesWorkToMultipleThreads) {
+   unsigned numberOfThreads{2};
+   pool.start(numberOfThreads);
+   Work work{[&] {
+      addThreadIfUnique(this_thread::get_id());
+      incrementCountAndNotify();
+   }};
+   unsigned NumberOfWorkItems{500};
+
+   for (unsigned i{0}; i < NumberOfWorkItems; i++)
+      pool.add(work);
+
+   waitForCountAndFailOnTimeout(NumberOfWorkItems);
+   LONGS_EQUAL(numberOfThreads, numberOfThreadsProcessed());
 }
