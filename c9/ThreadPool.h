@@ -11,13 +11,17 @@
 class ThreadPool {
 public:
    virtual ~ThreadPool() {
-      done_ = true;
-      if (workThread_)
-         workThread_->join();
+      stop();
    }
 
    void start() {
       workThread_ = std::make_shared<std::thread>(&ThreadPool::worker, this);
+   }
+
+   void stop() {
+      done_ = true;
+      if (workThread_)
+         workThread_->join();
    }
 
    bool hasWork() {
