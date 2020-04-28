@@ -15,6 +15,9 @@ set(testSources
    GeoServerTest.cpp
    LocationTest.cpp
    AreaTest.cpp
+   ThreadPoolTest.cpp
+   WorkTest.cpp
+   TestTimer.cpp
    CppUTestExtensions.cpp
    CppUTestExtensionsTest.cpp)
 add_executable(utest testmain.cpp ${testSources} ${sources})

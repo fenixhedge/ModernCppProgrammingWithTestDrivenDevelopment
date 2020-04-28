@@ -1,5 +1,7 @@
 #include "GeoServer.h"
 
+#include "TestTimer.h"
+
 #include "CppUTestExtensions.h"
 #include "CppUTest/TestHarness.h"
 
@@ -120,7 +122,8 @@ TEST(AGeoServer_UsersInBox, HandlesLargeNumbersOfUsers) {
       server.track(user);
       server.updateLocation(user, anotherLocation);
    }
-
+   TestTimer timer;
    auto users = server.usersInBox(aUser, Width, Height);
+
    CHECK_EQUAL(lots, users.size());
 }
