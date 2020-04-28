@@ -9,10 +9,14 @@ add_definitions(-g -std=c++0x)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(sources
    GeoServer.cpp
+   Area.cpp
    Location.cpp)
 set(testSources
    GeoServerTest.cpp
-   LocationTest.cpp)
+   LocationTest.cpp
+   AreaTest.cpp
+   CppUTestExtensions.cpp
+   CppUTestExtensionsTest.cpp)
 add_executable(utest testmain.cpp ${testSources} ${sources})
 
 target_link_libraries(utest CppUTest)

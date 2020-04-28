@@ -1,5 +1,6 @@
 #include "GeoServer.h"
 
+#include "CppUTestExtensions.h"
 #include "CppUTest/TestHarness.h"
 
 using namespace std;
@@ -67,3 +68,38 @@ TEST(AGeoServer, AnswersUnknownLocationForUserNoLongerTracked) {
    CHECK_TRUE(server.locationOf(aUser).isUnknown());
 }
 
+TEST_GROUP(AGeoServer_UsersInBox) {
+   GeoServer server;
+
+   const double TenMeters { 10 };
+   const double Width { 2000 + TenMeters };
+   const double Height { 4000 + TenMeters };
+   const string aUser { "auser" };
+   const string bUser { "buser" };
+   const string cUser { "cuser" };
+
+   Location aUserLocation { 38, -103 };
+
+   void setup() override {
+      server.track(aUser);
+      server.track(bUser);
+      server.track(cUser);
+      server.updateLocation(aUser, aUserLocation);
+   }
+
+   vector<string> UserNames(const vector<User>& users) {
+      return Collect<User, string>(users, [](User each) { return each.name(); });
+   }
+};
+
+TEST(AGeoServer_UsersInBox, AnswersUsersInSpecifiedRange) {
+   server.updateLocation(
+      bUser, Location{ aUserLocation.go(Width / 2 - TenMeters, East)});
+
+   auto users = server.usersInBox(aUser, Width, Height);
+
+   CHECK_EQUAL(vector<string>{ bUser }, UserNames(users));
+}
+
+TEST(AGeoServer_UsersInBox, AnswersOnlyUsersInSpecifiedRange) {
+}

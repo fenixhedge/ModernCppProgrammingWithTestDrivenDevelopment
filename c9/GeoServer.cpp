@@ -25,8 +25,28 @@ Location GeoServer::locationOf(const string& user) const {
    return find(user)->second;
 }
 
-std::unordered_map<std::string, Location>::const_iterator 
+bool GeoServer::isDifferentUserInBounds(
+      const pair<string, Location>& each,
+      const string& user,
+      const Area& box) const {
+   if (each.first == user) return false;
+   return box.inBounds(each.second);
+}
+
+unordered_map<std::string, Location>::const_iterator 
    GeoServer::find(const std::string& user) const {
    return locations_.find(user);
 }
 
+vector<User> GeoServer::usersInBox(
+      const string& user, double widthInMeters, double heightInMeters) const {
+   auto location = locations_.find(user)->second;
+   Area box { location, widthInMeters, heightInMeters };
+
+   vector<User> users;
+   for (auto& each : locations_)
+      if (isDifferentUserInBounds(each, user, box))
+         users.push_back(User{each.first, each.second});
+
+   return users;
+}
