@@ -23,3 +23,4 @@ set(testSources
 add_executable(utest testmain.cpp ${testSources} ${sources})
 
 target_link_libraries(utest CppUTest)
+target_link_libraries(utest pthread)

@@ -1,9 +1,15 @@
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
+
 #include "ThreadPool.h"
 #include "CppUTest/TestHarness.h"
 
 using namespace std;
+using namespace std::chrono;
 
 TEST_GROUP(AThreadPool) {
+   mutex m;
    ThreadPool pool;
 };
 
@@ -44,4 +50,55 @@ TEST(AThreadPool, HasWorkAfterWorkRemovedButWorkRemains) {
    pool.pullWork();
 
    CHECK_TRUE(pool.hasWork());
+}
+
+TEST(AThreadPool, PullsWorkInAThread) {
+   pool.start();
+   condition_variable wasExecuted;
+   bool wasWorked{false};
+   Work work{[&] {
+      unique_lock<mutex> lock(m);
+      wasWorked = true;
+      wasExecuted.notify_all();
+   }};
+
+   pool.add(work);
+
+   unique_lock<mutex> lock(m);
+   CHECK_TRUE(wasExecuted.wait_for(lock, chrono::milliseconds(100),
+         [&] { return wasWorked; }));
+}
+
+TEST_GROUP(AThreadPool_AddRequest) {
+   mutex m;
+   ThreadPool pool;
+   condition_variable wasExecuted;
+   unsigned count {0};
+
+   void setup() override {
+      pool.start();
+   }
+
+   void incrementCountAndNotify() {
+      std::unique_lock<std::mutex> lock(m);
+      ++count;
+      wasExecuted.notify_all();
+   }
+
+   void waitForCountAndFailOnTimeout(
+         unsigned int expectedCount,
+         const milliseconds& time=milliseconds(100)) {
+      unique_lock<mutex> lock(m);
+      CHECK_TRUE(wasExecuted.wait_for(lock, time,
+            [&] { return expectedCount == count; }));
+   }
+};
+
+TEST(AThreadPool_AddRequest, ExecutesAllWork) {
+   unsigned NumberOfWorkItems{3};
+   Work work{ [&] { incrementCountAndNotify(); } };
+
+   for (unsigned int i{0}; i < NumberOfWorkItems; i++)
+      pool.add(work);
+   waitForCountAndFailOnTimeout(NumberOfWorkItems);
 }
