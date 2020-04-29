@@ -12,6 +12,11 @@
 
 #include "VectorUtil.h"
 
+class GeoServerListener {
+public:
+   virtual void updated(const User& user) = 0;
+};
+
 class GeoServer {
 public:
    void track(const std::string& user);
@@ -27,7 +32,8 @@ public:
          const Area& box) const;
 
    std::vector<User> usersInBox(
-         const std::string& user, double widthInMeters, double heightInMeters) const;
+         const std::string& user, double widthInMeters, double heightInMeters,
+         GeoServerListener* listener=nullptr) const;
 
 private:
    std::unordered_map<std::string, Location> locations_;
