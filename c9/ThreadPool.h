@@ -31,7 +31,7 @@ public:
       return !workQueue_.empty();
    }
 
-   void add(Work work) {
+   virtual void add(Work work) {
       std::lock_guard<std::mutex> block(mutex_);
       workQueue_.push(work);
    }
@@ -59,7 +59,6 @@ private:
 
    std::atomic<bool> done_{false};
    std::queue<Work> workQueue_;
-   std::shared_ptr<std::thread> workThread_;
    std::mutex mutex_;
    std::vector<std::thread> threads_;
 };

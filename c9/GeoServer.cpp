@@ -38,20 +38,22 @@ unordered_map<std::string, Location>::const_iterator
    return locations_.find(user);
 }
 
-vector<User> GeoServer::usersInBox(
+void GeoServer::usersInBox(
       const string& user, double widthInMeters, double heightInMeters,
       GeoServerListener* listener) const {
    auto location = locations_.find(user)->second;
    Area box { location, widthInMeters, heightInMeters };
 
    vector<User> users;
-   for (auto& each : locations_)
-      if (isDifferentUserInBounds(each, user, box)) {
-         users.push_back(User{each.first, each.second});
-         if (listener) {
+   for (auto& each : locations_) {
+      Work work{[&] {
+         if (isDifferentUserInBounds(each, user, box))
             listener->updated(User{each.first, each.second});
-         }
-      }
+      }};
+      pool_->add(work);
+   }
+}
 
-   return users;
+void GeoServer::useThreadPool(shared_ptr<ThreadPool> pool) {
+   pool_ = pool;
 }

@@ -9,6 +9,7 @@
 #include "Location.h"
 #include "Area.h"
 #include "User.h"
+#include "ThreadPool.h"
 
 #include "VectorUtil.h"
 
@@ -31,15 +32,19 @@ public:
          const std::string& user,
          const Area& box) const;
 
-   std::vector<User> usersInBox(
+   void usersInBox(
          const std::string& user, double widthInMeters, double heightInMeters,
          GeoServerListener* listener=nullptr) const;
+
+   void useThreadPool(std::shared_ptr<ThreadPool> pool);
 
 private:
    std::unordered_map<std::string, Location> locations_;
 
    std::unordered_map<std::string, Location>::const_iterator 
       find(const std::string& user) const;
+
+   std::shared_ptr<ThreadPool> pool_;
 };
 
 #endif

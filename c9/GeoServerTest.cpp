@@ -1,11 +1,13 @@
 #include "GeoServer.h"
 
+#include <condition_variable>
 #include "TestTimer.h"
 
 #include "CppUTestExtensions.h"
 #include "CppUTest/TestHarness.h"
 
 using namespace std;
+using namespace std::chrono;
 
 TEST_GROUP(AGeoServer) {
    GeoServer server;
@@ -70,7 +72,8 @@ TEST(AGeoServer, AnswersUnknownLocationForUserNoLongerTracked) {
    CHECK_TRUE(server.locationOf(aUser).isUnknown());
 }
 
-TEST_GROUP(AGeoServer_UsersInBox) {
+class GeoServerUsersInBoxTests : public Utest {
+public:
    GeoServer server;
 
    const double TenMeters { 10 };
@@ -82,17 +85,42 @@ TEST_GROUP(AGeoServer_UsersInBox) {
 
    Location aUserLocation { 38, -103 };
 
+   shared_ptr<ThreadPool> pool;
+
+   void setup() override {
+      server.useThreadPool(pool);
+
+      server.track(aUser);
+      server.track(bUser);
+      server.track(cUser);
+
+      server.updateLocation(aUser, aUserLocation);
+   }
+
+   void addUsersAt(unsigned number, const Location& location) {
+      for (unsigned i{0}; i < number; i++) {
+         string user{"user" + to_string(i)};
+         server.track(user);
+         server.updateLocation(user, location);
+      }
+   }
+};
+
+TEST_GROUP_BASE(AGeoServer_UsersInBox, GeoServerUsersInBoxTests) {
    class GeoServerUserTrackingListener : public GeoServerListener {
    public:
       void updated(const User& user) { Users.push_back(user); }
       vector<User> Users;
    } trackingListener;
 
+   class SingleThreadedPool : public ThreadPool {
+   public:
+      virtual void add(Work work) override { work.execute(); }
+   };
+
    void setup() override {
-      server.track(aUser);
-      server.track(bUser);
-      server.track(cUser);
-      server.updateLocation(aUser, aUserLocation);
+      pool = make_shared<SingleThreadedPool>();
+      GeoServerUsersInBoxTests::setup();
    }
 
    vector<string> UserNames(const vector<User>& users) {
@@ -100,7 +128,8 @@ TEST_GROUP(AGeoServer_UsersInBox) {
    }
 };
 
-TEST(AGeoServer_UsersInBox, AnswersUsersWithinSpecifiedRange) {
+TEST(AGeoServer_UsersInBox, AnswersUsersInSpecifiedRange) {
+   pool->start(0);
    server.updateLocation(
       bUser, Location{ aUserLocation.go(Width / 2 - TenMeters, East)});
 
@@ -110,6 +139,7 @@ TEST(AGeoServer_UsersInBox, AnswersUsersWithinSpecifiedRange) {
 }
 
 TEST(AGeoServer_UsersInBox, AnswersOnlyUsersInSpecifiedRange) {
+   pool->start(0);
    server.updateLocation(
       bUser, Location{ aUserLocation.go(Width / 2 + TenMeters, East) });
    server.updateLocation(
@@ -121,13 +151,10 @@ TEST(AGeoServer_UsersInBox, AnswersOnlyUsersInSpecifiedRange) {
 }
 
 TEST(AGeoServer_UsersInBox, HandlesLargeNumbersOfUsers) {
-   Location anotherLocation{aUserLocation.go(10, West)};	
+   pool->start(0);
    const unsigned lots { 500000 };
-   for (unsigned i{0}; i < lots; i++) {
-      string user{"user" + to_string(i)};
-      server.track(user);
-      server.updateLocation(user, anotherLocation);
-   }
+   addUsersAt(lots, Location{aUserLocation.go(TenMeters, West)});
+
    TestTimer timer;
    server.usersInBox(aUser, Width, Height, &trackingListener);
 
