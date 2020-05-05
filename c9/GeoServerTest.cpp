@@ -97,9 +97,13 @@ public:
       server.updateLocation(aUser, aUserLocation);
    }
 
+   string userName(unsigned int i) {
+      return string{"user" + to_string(i)};
+   }
+
    void addUsersAt(unsigned number, const Location& location) {
       for (unsigned i{0}; i < number; i++) {
-         string user{"user" + to_string(i)};
+         string user = userName(i);
          server.track(user);
          server.updateLocation(user, location);
       }
@@ -152,11 +156,55 @@ TEST(AGeoServer_UsersInBox, AnswersOnlyUsersInSpecifiedRange) {
 
 TEST(AGeoServer_UsersInBox, HandlesLargeNumbersOfUsers) {
    pool->start(0);
-   const unsigned lots { 500000 };
+   const unsigned lots { 5000 };
    addUsersAt(lots, Location{aUserLocation.go(TenMeters, West)});
 
    TestTimer timer;
    server.usersInBox(aUser, Width, Height, &trackingListener);
 
    CHECK_EQUAL(lots, trackingListener.Users.size());
+}
+
+TEST_GROUP_BASE(AGeoServer_ScaleTests, GeoServerUsersInBoxTests) {
+   class GeoServerCountingListener : public GeoServerListener {
+   public:
+      void updated(const User& user) override {
+         unique_lock<mutex> lock(mutex_);
+         Count++;
+         wasExecuted_.notify_all();
+      }
+ 
+      void waitForCountAndFailOnTimeout(unsigned expectedCount,
+            const milliseconds& time=milliseconds(10000)) {
+         unique_lock<mutex> lock(mutex_);
+         CHECK_TRUE(wasExecuted_.wait_for(lock, time, [&]
+                  { return expectedCount == Count; }));
+      }
+ 
+      condition_variable wasExecuted_;
+      unsigned Count{0};
+      mutex mutex_;
+   };
+   GeoServerCountingListener countingListener;
+   shared_ptr<thread> t;
+
+   void setup() override {
+      pool = make_shared<ThreadPool>();
+      GeoServerUsersInBoxTests::setup();
+   }
+
+   void teardown() override {
+      t->join();
+   }
+};
+
+TEST(AGeoServer_ScaleTests, HandlesLargeNumbersOfUsers) {
+   pool->start(4);
+   const unsigned lots{5000};
+   addUsersAt(lots, Location{aUserLocation.go(TenMeters, West)});
+
+   t = make_shared<thread>(
+         [&] { server.usersInBox(aUser, Width, Height, &countingListener); });
+
+   countingListener.waitForCountAndFailOnTimeout(lots);
 }

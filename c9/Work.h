@@ -8,10 +8,12 @@ public:
    static const int DefaultId{0};
    Work(int id = DefaultId)
       : id_{id}
-      ,	executeFunction_{[]{}} {}
-   Work(std::function<void()> executeFunction, int id = DefaultId)
+      , executeFunction_{[]{}} {}
+
+   Work(std::function<void()> executeFunction, int id=DefaultId)
       : id_{id}
-      , executeFunction_{executeFunction} {}
+      , executeFunction_{executeFunction}
+      {}
 
    void execute() {
       executeFunction_();

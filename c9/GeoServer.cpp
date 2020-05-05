@@ -44,7 +44,6 @@ void GeoServer::usersInBox(
    auto location = locations_.find(user)->second;
    Area box { location, widthInMeters, heightInMeters };
 
-   vector<User> users;
    for (auto& each : locations_) {
       Work work{[&] {
          if (isDifferentUserInBounds(each, user, box))

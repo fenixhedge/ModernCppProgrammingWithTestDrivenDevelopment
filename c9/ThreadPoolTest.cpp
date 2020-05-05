@@ -19,7 +19,7 @@ TEST(AThreadPool, HasNoWorkOnCreation) {
 }
 
 TEST(AThreadPool, HasWorkAfterAdd) {
-   pool.add(Work{1});
+   pool.add(Work{});
    CHECK_TRUE(pool.hasWork());
 }
 
@@ -73,7 +73,7 @@ public:
 
    void waitForCountAndFailOnTimeout(
          unsigned int expectedCount,
-         const milliseconds& time=milliseconds(100)) {
+         const milliseconds& time=milliseconds(500)) {
       unique_lock<mutex> lock(m);
       CHECK_TRUE(wasExecuted.wait_for(lock, time,
             [&] { return expectedCount == count; }));
@@ -96,8 +96,8 @@ TEST(AThreadPool_AddRequest, PullsWorkInAThread) {
 }
 
 TEST(AThreadPool_AddRequest, ExecutesAllWork) {
-   unsigned NumberOfWorkItems{3};
    Work work{ [&] { incrementCountAndNotify(); } };
+   unsigned NumberOfWorkItems{3};
 
    for (unsigned int i{0}; i < NumberOfWorkItems; i++)
       pool.add(work);
@@ -105,7 +105,7 @@ TEST(AThreadPool_AddRequest, ExecutesAllWork) {
 }
 
 TEST(AThreadPool_AddRequest, HoldsUpUnderClientStress) {
-   Work work([&] { incrementCountAndNotify(); });
+   Work work{[&] { incrementCountAndNotify(); }};
    unsigned NumberOfWorkItems{100};
    unsigned NumberOfThreads{100};
 
@@ -120,9 +120,10 @@ TEST(AThreadPool_AddRequest, HoldsUpUnderClientStress) {
 
 TEST_GROUP_BASE(AThreadPoolWithMultipleThreads, ThreadPoolThreadTest) {
    set<thread::id> threads;
+   mutex threads_m;
 
    void addThreadIfUnique(const thread::id& id) {
-      std::unique_lock<mutex> lock(m);
+      std::unique_lock<mutex> lock(threads_m);
       threads.insert(id);
    }
 
@@ -138,7 +139,7 @@ TEST(AThreadPoolWithMultipleThreads, DispatchesWorkToMultipleThreads) {
       addThreadIfUnique(this_thread::get_id());
       incrementCountAndNotify();
    }};
-   unsigned NumberOfWorkItems{500};
+   unsigned NumberOfWorkItems{5000};
 
    for (unsigned i{0}; i < NumberOfWorkItems; i++)
       pool.add(work);
