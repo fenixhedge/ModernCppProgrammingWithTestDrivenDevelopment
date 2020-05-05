@@ -2,12 +2,11 @@
 
 #include "CppUTest/TestHarness.h"
 
-TEST_GROUP(ASoundexEncoding) {};
+TEST_GROUP(ASoundexEncoding) {
+   Soundex soundex;
+};
 
 TEST(ASoundexEncoding, RetainsSoleLetterOfOneLetterWord) {
-   Soundex soundex;
-
-   auto encoded = soundex.encode("A");
-
-   CHECK_EQUAL("A000", encoded);
+   CHECK_EQUAL("A000", soundex.encode("A"));
+   CHECK_EQUAL("B000", soundex.encode("B"));
 }
