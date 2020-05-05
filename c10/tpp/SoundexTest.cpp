@@ -9,5 +9,5 @@ TEST(ASoundexEncoding, RetainsSoleLetterOfOneLetterWord) {
 
    auto encoded = soundex.encode("A");
 
-   CHECK_EQUAL("A", encoded);
+   CHECK_EQUAL("A000", encoded);
 }
