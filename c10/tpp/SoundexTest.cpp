@@ -19,3 +19,11 @@ TEST(ASoundexEncoding, ReplacesConsonantsWithAppropriateDigits) {
 TEST(ASoundexEncoding, ReplacesMultipleConsonantsWithDigits) {
    CHECK_EQUAL("A234", soundex.encode("Acdl"));
 }
+
+TEST(ASoundexEncoding, IgnoresVowelLikeLetters) {
+   CHECK_EQUAL("B234", soundex.encode("BAaEeIiOoUuHhYycdl"));
+}
+
+TEST(ASoundexEncoding, IgnoresNonAlphabetics) {
+   CHECK_EQUAL("F234", soundex.encode("F987654321%#.=+cdl"));
+}
