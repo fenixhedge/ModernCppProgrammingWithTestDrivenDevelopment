@@ -20,20 +20,18 @@ public:
    }
 
    std::string encode(const std::string& word) const {
-      std::string code("");
-      code += head(word);
-      encodeTail(word, code);
+      std::string code(1, head(word));
+      encode(tail(word), code);
       return zeroPad(code);
+   }
+   void encode(const std::string& word, std::string& code) const {
+      if (word.empty()) return;
+      code += codeFor(head(word));
+      encode(tail(word), code);
    }
 
    char head(const std::string& word) const {
       return word[0];
-   }
-
-   void encodeTail(const std::string& word, std::string& code) const {
-      if (word[1] == 0) return;
-      code += codeFor(word[1]);
-      encodeTail(tail(word), code);
    }
 
    std::string tail(const std::string& word) const {
